@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MTurk Goals
 // @namespace    http://greasyfork.org/
-// @version      0.5
+// @version      0.6
 // @description  Add goals and progess bars to the mTurk Dashboard and Status pages.
 // @author       Jacob Valenta
 // @include      https://www.mturk.com/mturk/dashboard
@@ -9,13 +9,8 @@
 // @grant        none
 // ==/UserScript==
 
-var pad = function(n, width, chr) {
-  chr = chr || '0';
-  n = n + '';
-  return n.length >= width ? n : new Array(width - n.length + 1).join(chr) + n;
-};
-
 var getJsonFromUrl = function(url){
+    // Get GET parameters from a url as JSON
     // http://stackoverflow.com/a/8486146
     var regex = /[?&]([^=#]+)=([^&#]*)/g,
         url = url,
@@ -41,9 +36,9 @@ var getGoal = function(){
 };
 
 var percentColors = [
-    { pct: 0.0, color: { r: 0xd0, g: 0x60, b: 0x60 } },
-    { pct: 0.5, color: { r: 0xd0, g: 0xd0, b: 0x60 } },
-    { pct: 1.0, color: { r: 0x60, g: 0xd0, b: 0x60 } } ];
+    { pct: 0.0, color: { r: 0xc0, g: 0x50, b: 0x50 } },
+    { pct: 0.5, color: { r: 0xc0, g: 0xc0, b: 0x50 } },
+    { pct: 1.0, color: { r: 0x50, g: 0xc0, b: 0x50 } } ];
 
 var getColorForPercentage = function(pct) {
     for (var i = 1; i < percentColors.length - 1; i++) {
@@ -158,8 +153,8 @@ var getPendingHitsForDate = function(date, callback, prog_container, earned) {
         var progress_label = document.createElement('div');
 
         // TODO: Add actual CSS and classes to DOM.
-        progress_container.setAttribute("style", "position: relative; display: inline-block; float: right; width: " + width + "px; height: 6px; background-color: #eee; border: 1px solid #888; margin-top: 3px; border-radius: 1px");
-        progress.setAttribute("style", "position: absolute; width: " + prog + "px; max-width: "+width+"px; height: 6px; background-color: "+ getColorForPercentage(fraction) + "; z-index: 10;");      
+        progress_container.setAttribute("style", "display: inline-block; float: right; width: " + width + "px; height: 6px; background-color: #eee; border: 1px solid #888; margin-top: 3px; border-radius: 1px");
+        progress.setAttribute("style", "width: " + prog + "px; max-width: "+width+"px; height: 6px; background-color: "+ getColorForPercentage(fraction) + ";");      
 
         progress_label.setAttribute("style", "float: right; display: inline-block;");
         progress_label.innerHTML = (Math.round((fraction * 100) * 10) / 10).toFixed(1).toString() + "%&nbsp;&nbsp;";
@@ -178,7 +173,7 @@ var getPendingHitsForDate = function(date, callback, prog_container, earned) {
             var pending_prog = pending_fraction * width;
 
             var pending_progress = document.createElement('div');
-            pending_progress.setAttribute("style", "position: absolute; max-width:"+width+"px; height: 6px; z-index: 5; -webkit-filter: grayscale(50%); opacity: 0.5");
+            pending_progress.setAttribute("style", "margin-top: -6px; max-width:"+width+"px; height: 6px; opacity: 0.5");
             pending_progress.style.width = pending_prog;
             pending_progress.style["background-color"] = getColorForPercentage(pending_fraction);
 
@@ -186,3 +181,4 @@ var getPendingHitsForDate = function(date, callback, prog_container, earned) {
         }, progress_container, earned);
     }
 })();
+

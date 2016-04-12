@@ -6,3 +6,4 @@ The goal can be set from the Dashboard page. The input box is in the last row un
 
 This is a new project and has not been tested with other scripts. Please report bugs or ideas for features.
 
+Available on Github: [https://github.com/jacobvalenta/mturk-goals](https://github.com/jacobvalenta/mturk-goals) 

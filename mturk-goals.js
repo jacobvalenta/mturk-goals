@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MTurk Goals
 // @namespace    http://greasyfork.org/
-// @version      0.6
+// @version      0.7
 // @description  Add goals and progess bars to the mTurk Dashboard and Status pages.
 // @author       Jacob Valenta
 // @include      https://www.mturk.com/mturk/dashboard
@@ -60,12 +60,12 @@ var getColorForPercentage = function(pct) {
     return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
 };
 
-var getPendingHitsForDate = function(date, callback, prog_container, earned) {
+var getPendingHitsForDate = function(date, pages, callback, prog_container, earned) {
     // Hastily written. I will work on refactoring this.
 
     // I gave up on javascript's Dates and UTC vs PDT and PST
     // Screw that, just parse the date out of amazon's url...
-	var currentPage = 1, pages = 1;
+	var currentPage = 1;
 
     while (currentPage <= pages){
 		var request = new XMLHttpRequest();
@@ -89,12 +89,11 @@ var getPendingHitsForDate = function(date, callback, prog_container, earned) {
                     }
 
                 }
-                console.log(pending);
                 callback(pending, prog_container, earned);
             }
         };
 
-		request.open("GET", "https://www.mturk.com/mturk/statusdetail?encodedDate=" + date + "&sortType=Pending", true);
+		request.open("GET", "https://www.mturk.com/mturk/statusdetail?encodedDate=" + date + "&sortType=Pending&pageNumber=" + currentPage, true);
         request._date = date;
         request.responseType = "document";
 		request.send();
@@ -165,20 +164,21 @@ var getPendingHitsForDate = function(date, callback, prog_container, earned) {
 
         // Get pending hits and add another progress bar
         var dateString = getJsonFromUrl(row.querySelector('td a').getAttribute("href"));
-        getPendingHitsForDate(dateString.encodedDate, function(amount, container, accepted){
-            console.log(container, amount);
+        var pendingHits = parseInt(row.querySelectorAll("td")[4].innerText);
+        var pages = Math.ceil(pendingHits / 25);
+        if (pendingHits > 0){
+            getPendingHitsForDate(dateString.encodedDate, pages, function(amount, container, accepted){
+                var pending_earned = accepted + amount;
+                var pending_fraction = (pending_earned / goal);
+                var pending_prog = pending_fraction * width;
 
-            var pending_earned = accepted + amount;
-            var pending_fraction = (pending_earned / goal);
-            var pending_prog = pending_fraction * width;
+                var pending_progress = document.createElement('div');
+                pending_progress.setAttribute("style", "margin-top: -6px; max-width:"+width+"px; height: 6px; opacity: 0.5");
+                pending_progress.style.width = pending_prog;
+                pending_progress.style["background-color"] = getColorForPercentage(pending_fraction);
 
-            var pending_progress = document.createElement('div');
-            pending_progress.setAttribute("style", "margin-top: -6px; max-width:"+width+"px; height: 6px; opacity: 0.5");
-            pending_progress.style.width = pending_prog;
-            pending_progress.style["background-color"] = getColorForPercentage(pending_fraction);
-
-           container.appendChild(pending_progress);
-        }, progress_container, earned);
+               container.appendChild(pending_progress);
+            }, progress_container, earned);
+        }
     }
 })();
-
